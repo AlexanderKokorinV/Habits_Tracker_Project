@@ -1,0 +1,49 @@
+import os
+import requests
+from django.conf import settings
+from habits.models import Habit
+
+
+class TelegramBotAPIService:
+    """Сервис для интеграции с Telegram Bot API"""
+
+    @staticmethod
+    def _get_api_url() -> str:
+
+        # Чтение токен бота из настроек
+        bot_token = getattr(settings, "TELEGRAM_BOT_TOKEN", os.getenv("TELEGRAM_BOT_TOKEN"))
+        if not bot_token:
+            raise ValueError("В конфигурации проекта отсутствует TELEGRAM_BOT_TOKEN")
+        return f"https://telegram.org{bot_token}/sendMessage"
+
+
+    @staticmethod
+    def build_habit_reminder_text(cls, habit: Habit) -> str:
+        """Формирует текст напоминания по канонам книги 'Атомные привычки"""
+        message = (
+            f"**Время атомной привычки!**\n\n"
+            f"Я буду **{habit.action}** в **{habit.time.strftime('%H:%M')}** в **{habit.place}**."
+        )
+
+        if habit.related_habit:
+            message += f"\n\n *Сразу после этого сделайте приятное действие:* {habit.related_habit.action}"
+        elif habit.reward:
+            message += f"\n\n *Ваша награда за выполнение:* {habit.reward}"
+
+        return message
+
+    def send_message(cls, chat_id: str, text: str) -> bool:
+        """Отправляет текстовое сообщение в Telegram"""
+        try:
+            url = cls._get_api_url()
+            payload = {
+                "chat_id": chat_id,
+                "text": text,
+                "parse_mode": "Markdown"
+            }
+            response = requests.post(url, json=payload, timeout=5)
+            response.raise_for_status()
+            return True
+        except (requests.RequestException, ValueError) as e:
+            print(f"Ошибка Telegram Service при отправке в чат {chat_id}: {e}")
+            return False

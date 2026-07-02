@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "django_filters",
     "users",
     "habits",
+    "telegram_bot",
 ]
 
 MIDDLEWARE = [
