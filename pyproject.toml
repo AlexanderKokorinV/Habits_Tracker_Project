@@ -15,7 +15,9 @@ dependencies = [
     "redis (>=8.0.1,<9.0.0)",
     "python-dotenv (>=1.2.2,<2.0.0)",
     "django-celery-beat (>=2.9.0,<3.0.0)",
-    "eventlet (>=0.41.0,<0.42.0)"
+    "eventlet (>=0.41.0,<0.42.0)",
+    "djangorestframework-simplejwt (>=5.5.1,<6.0.0)",
+    "pillow (>=12.3.0,<13.0.0)"
 ]
 
 
