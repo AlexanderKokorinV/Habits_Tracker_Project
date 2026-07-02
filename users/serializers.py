@@ -1,9 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-
-from users.managers import CustomUserManager
 
 User = get_user_model()
 
@@ -22,16 +19,17 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Метод создания с хешированием пароля перед сохранением в БД"""
 
-        assert isinstance(User.objects, CustomUserManager)  # Техническая строка для линтера
-
         try:
-            user = User.objects.create(
-                email=validated_data.get("email"),
-                password=validated_data.get("password"),
-                phone_number=validated_data.get("phone_number", None),
-                city=validated_data.get("city", None),
-                avatar=validated_data.get("avatar", None),
-            )
+            user = User.objects.create_user(**validated_data)
             return user
-        except IntegrityError as e:
-            raise ValidationError({"error": f"Не удалось завершить регистрацию из-за системной ошибки: {str(e)}"})
+        except Exception as e:
+            raise ValidationError({"error": f"Не удалось завершить регистрацию: {str(e)}"})
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    """Сериализатор для безопасного отображения и редактирования профиля текущего пользователя"""
+
+    class Meta:
+        model = User
+        fields = ["id", "email", "telegram_chat_id", "phone_number", "city", "avatar"]
+        read_only_fields = ["id", "email"] # Запрещаем изменять id и email через этот эндпоинт в целях безопасности
