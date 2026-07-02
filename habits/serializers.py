@@ -8,11 +8,10 @@ class HabitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Habit
         fields = "__all__"
-        read_only_fields = ("user",)
+        read_only_fields = ["user"]
 
         def validate(self, data):
             """Валидатор данных привычки"""
-
             related_habit = data.get("related_habit", self.instance.related_habit if self.instance else None)
             reward = data.get("reward", self.instance.reward if self.instance else None)
             is_pleasant = data.get("is_pleasant", self.instance.is_pleasant if self.instance else False)
