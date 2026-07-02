@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
@@ -42,6 +43,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "django_celery_beat",
+    "users",
+    "habits",
 ]
 
 MIDDLEWARE = [
@@ -138,3 +142,41 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+AUTH_USER_MODEL = "users.User"
+
+# Конфигурация Celery и брокера Redis
+CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
+CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
+
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = False # Позволяет Celery-Beat использовать локальное время таймзоны
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_BEAT_SCHEDULE = {
+    "block_inactive_users_every_day_at_midnight": {
+        "task": "users.tasks.block_inactive_users",
+        "schedule": crontab(hour=0, minute=0),  # Запуск каждый день в 00:00
+    },
+    # Блок ниже для того, чтобы протестировать работу воркера каждые 30 секунд:
+    # "test_block_inactive_users_every_30_seconds": {
+    #     "task": "users.tasks.block_inactive_users",
+    #     "schedule": 30.0,
+    # },
+}
+
+
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.redis.RedisCache",
+#         "LOCATION": os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1"),
+#         "TIMEOUT": 60,
+#     }
+# }
+
+#Настройка для отключения кеширования
+CACHES = {
+   "default": {
+       "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+   }
+}
