@@ -6,6 +6,7 @@ from habits.models import Habit
 from telegram_bot.services import TelegramBotAPIService
 
 
+
 @shared_task
 def send_habbit_reminders():
     """Периодическая задача Celery, проверяющая привычки каждую минуту

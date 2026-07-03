@@ -11,10 +11,13 @@ class TelegramBotAPIService:
     def _get_api_url() -> str:
 
         # Чтение токен бота из настроек
-        bot_token = getattr(settings, "TELEGRAM_BOT_TOKEN", os.getenv("TELEGRAM_BOT_TOKEN"))
-        if not bot_token:
-            raise ValueError("В конфигурации проекта отсутствует TELEGRAM_BOT_TOKEN")
-        return f"https://telegram.org{bot_token}/sendMessage"
+        if not hasattr(settings, "TELEGRAM_BOT_TOKEN") or not settings.TELEGRAM_BOT_TOKEN:
+            raise ValueError("В конфигурации settings.py отсутствует или пуст TELEGRAM_BOT_TOKEN")
+
+        if not hasattr(settings, "TELEGRAM_URL") or not settings.TELEGRAM_URL:
+            raise ValueError("В конфигурации settings.py отсутствует или пуст TELEGRAM_URL")
+
+        return f"{settings.TELEGRAM_URL.rstrip('/')}{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
 
 
     @staticmethod
