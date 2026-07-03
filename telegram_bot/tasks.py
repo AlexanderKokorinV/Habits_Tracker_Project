@@ -33,10 +33,9 @@ def send_habit_reminders():
         message_text = TelegramBotAPIService.build_habit_reminder_text(habit)
 
         # Отправка сообщения через сервис
-        success = TelegramBotAPIService.send_habit_reminder_with_button(
+        success = TelegramBotAPIService.send_message(
             chat_id=habit.user.telegram_chat_id,
             text=message_text,
-            habit_id=habit.id
         )
         if success:
             sent_count += 1

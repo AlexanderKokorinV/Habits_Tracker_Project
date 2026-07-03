@@ -24,19 +24,19 @@ class TelegramBotAPIService:
     def build_habit_reminder_text(cls, habit: Habit) -> str:
         """Формирует текст напоминания по канонам книги 'Атомные привычки"""
         message = (
-            f"**Время атомной привычки!**\n\n"
+            f"\u23F0 *Время атомной привычки!*\n\n"
             f"Я буду **{habit.action}** в **{habit.time.strftime('%H:%M')}** в **{habit.place}**."
         )
 
         if habit.related_habit:
-            message += f"\n\n_Сразу после этого сделайте приятное действие:_{habit.related_habit.action}"
+            message += f"\n\n\U0001F525 _Сразу после этого сделайте приятное действие:_ {habit.related_habit.action}"
         elif habit.reward:
-            message += f"\n\n_Ваша награда за выполнение:_{habit.reward}"
+            message += f"\n\n\U0001F381 _Ваша награда за выполнение:_ {habit.reward}"
 
         return message
 
     @classmethod
-    def send_message(cls, chat_id: str, text: str, reply_markup: dict = None) -> bool:
+    def send_message(cls, chat_id: str, text: str) -> bool:
         """Отправляет текстовое сообщение с кнопкой в Telegram"""
         try:
             url = cls._get_api_url()
@@ -45,11 +45,6 @@ class TelegramBotAPIService:
                 "text": text,
                 "parse_mode": "Markdown"
             }
-
-            # Если кнопки переданы - добавляем их в запрос
-            if reply_markup:
-                payload["reply_markup"] = json.dumps(reply_markup)
-
             response = requests.post(url, json=payload, timeout=5)
             response.raise_for_status()
             return True
@@ -58,17 +53,5 @@ class TelegramBotAPIService:
             print(f"Ошибка Telegram Service при отправке в чат {chat_id}: {e}")
             return False
 
-    @classmethod
-    def send_habit_reminder_with_button(cls, chat_id: str, text: str, habit_id: int) -> bool:
-        """Отправляет напоминание с кнопкой 'Выполнено'"""
-        reply_markup = {
-            "inline_keyboard": [[
-                {
-                    "text": "✅ Выполнено!",
-                    "callback_data": f"check_habit:{habit_id}"
-                }
-            ]]
-        }
-        return cls.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)
 
 

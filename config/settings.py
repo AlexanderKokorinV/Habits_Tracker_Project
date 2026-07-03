@@ -47,12 +47,16 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "rest_framework_simplejwt",
     "django_filters",
+    "drf_yasg",
+    "corsheaders",
+
     "users",
     "habits",
     "telegram_bot",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -182,7 +186,7 @@ CELERY_BEAT_SCHEDULE = {
 #     }
 # }
 
-#Настройка для отключения кеширования
+# Настройка для отключения кеширования
 CACHES = {
    "default": {
        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
@@ -192,5 +196,25 @@ CACHES = {
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-TELEGRAM_URL = "https://api.telegram.org/bot"
+# Настройка для работы с Telegram API
+TELEGRAM_URL = os.getenv("TELEGRAM_URL")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "Введите токен в формате: Bearer <ваш_access_токен>"
+        }
+    },
+    "USE_SESSION_AUTH": False,
+}
+
+# Настройка разрешенных адресов (Origins)
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS")
+
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS")
+
+CORS_ALLOW_ALL_ORIGINS = False

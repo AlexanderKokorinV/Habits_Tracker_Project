@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status, generics
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
@@ -16,6 +18,23 @@ class UserCreateAPIView(CreateAPIView):
     serializer_class = UserRegisterSerializer
     permission_classes = [permissions.AllowAny]
     queryset = User.objects.all()
+
+    # Ручное описание ответа для Swagger
+    @swagger_auto_schema(
+        responses={
+            201: openapi.Response(
+                description="Пользователь успешно создан. Возвращены JWT-токены.",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "user": openapi.Schema(type=openapi.TYPE_OBJECT, description="Данные профиля"),
+                        "refresh": openapi.Schema(type=openapi.TYPE_STRING, description="JWT Refresh Token"),
+                        "access": openapi.Schema(type=openapi.TYPE_STRING, description="JWT Access Token"),
+                    }
+                )
+            )
+        }
+    )
 
     def create(self, request, *args, **kwargs):
         """Переопределяет метод create для выдачи JWT-токенов"""
