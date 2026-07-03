@@ -8,7 +8,7 @@ from telegram_bot.services import TelegramBotAPIService
 
 
 @shared_task
-def send_habbit_reminders():
+def send_habit_reminders():
     """Периодическая задача Celery, проверяющая привычки каждую минуту
     и делегирующая отправку сервису TelegramBotAPIService"""
 
@@ -33,7 +33,11 @@ def send_habbit_reminders():
         message_text = TelegramBotAPIService.build_habit_reminder_text(habit)
 
         # Отправка сообщения через сервис
-        success = TelegramBotAPIService.send_message(habit.user.telegram_chat_id, message_text)
+        success = TelegramBotAPIService.send_habit_reminder_with_button(
+            chat_id=habit.user.telegram_chat_id,
+            text=message_text,
+            habit_id=habit.id
+        )
         if success:
             sent_count += 1
 

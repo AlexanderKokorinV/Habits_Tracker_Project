@@ -167,14 +167,9 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BEAT_SCHEDULE = {
-    # "block_inactive_users_every_day_at_midnight": {
-    #     "task": "users.tasks.block_inactive_users",
-    #     "schedule": crontab(hour=0, minute=0),  # Запуск каждый день в 00:00
-    # },
-    # Блок ниже для того, чтобы протестировать работу воркера каждые 30 секунд:
-    "test_block_inactive_users_every_30_seconds": {
-        "task": "users.tasks.block_inactive_users_periodic",
-        "schedule": 30.0,
+    "send-habit-reminders-every-minute": {
+        "task": "telegram_bot.tasks.send_habit_reminders",
+        "schedule": 60.0,  # Запуск каждые 60 секунд (1 минуту)
     },
 }
 

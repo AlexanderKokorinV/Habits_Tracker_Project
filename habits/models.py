@@ -73,3 +73,27 @@ class Habit(models.Model):
 
     def __str__(self):
         return f"Я буду {self.action} в {self.time} в {self.place}"
+
+class HabitLog(models.Model):
+    """Модель лога выполнения привычки для трекинга и статистики"""
+
+    habit = ForeignKey(
+        Habit,
+        on_delete=models.CASCADE,
+        related_name="logs",
+        verbose_name="Привычка"
+    )
+    # Дата и время нажатия на кнопку
+    checked_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Дата и время выполнения"
+    )
+
+    class Meta:
+        verbose_name = "Лог выполнения"
+        verbose_name_plural = "Логи выполнения"
+        ordering = ["-checked_at"]
+
+    def __str__(self):
+        return f"Привычка '{self.habit.action}' выполнена в {self.checked_at.strftime('%d.%m.%Y %H:%M')}"
+
