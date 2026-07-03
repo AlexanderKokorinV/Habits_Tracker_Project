@@ -7,6 +7,7 @@ from rest_framework.test import APITestCase
 
 User = get_user_model()
 
+
 class UserAuthTestCase(APITestCase):
     """Тесты для аутентификации, профилей и кастомного менеджера пользователей"""
 
@@ -39,10 +40,7 @@ class UserAuthTestCase(APITestCase):
 
     def test_user_login_and_jwt_obtain(self):
         """Тест получения токенов через эндпоинт Simple-JWT"""
-        data = {
-            "email": self.user_email,
-            "password": self.user_password
-        }
+        data = {"email": self.user_email, "password": self.user_password}
         response = self.client.post(self.token_url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access", response.data)
@@ -69,8 +67,6 @@ class UserAuthTestCase(APITestCase):
         self.assertTrue(superuser.is_staff)
         self.assertTrue(superuser.is_superuser)
 
-
         # Проверка генерации валидационных ошибок менеджера
         with self.assertRaises(ValueError):
-            User.objects.create_user(email="") # Вызов ошибки ValueError
-
+            User.objects.create_user(email="")  # Вызов ошибки ValueError

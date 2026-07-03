@@ -1,10 +1,10 @@
 import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from django.conf import settings
 
 from habits.models import Habit
 from telegram_bot.services import TelegramBotAPIService
@@ -14,15 +14,14 @@ from telegram_bot.services import TelegramBotAPIService
 
 User = get_user_model()
 
+
 class TelegramServiceTestCase(TestCase):
     """Тест сервисной функциональности"""
 
     def setUp(self):
         """Создание тестовых данных для проверки сервиса"""
         self.user = User.objects.create_user(
-            email="bot_tester@test.com",
-            password="1234!1234",
-            telegram_chat_id="123456789"
+            email="bot_tester@test.com", password="1234!1234", telegram_chat_id="123456789"
         )
         # Полезная привычка с текстовой наградой
         self.habit_with_reward = Habit.objects.create(
@@ -32,7 +31,7 @@ class TelegramServiceTestCase(TestCase):
             place="ванной",
             is_pleasant=False,
             duration=60,
-            reward="съесть яблоко"
+            reward="съесть яблоко",
         )
 
     def test_build_habit_reminder_text_with_reward(self):
@@ -40,9 +39,9 @@ class TelegramServiceTestCase(TestCase):
         text = TelegramBotAPIService.build_habit_reminder_text(self.habit_with_reward)
 
         # Проверка, что текст формируется корректно
-        self.assertIn("\u23F0 *Время атомной привычки!*", text)
+        self.assertIn("\u23f0 *Время атомной привычки!*", text)
         self.assertIn("Я буду **умываться** в **07:00** в **ванной**.", text)
-        self.assertIn("\U0001F381 _Ваша награда за выполнение:_ съесть яблоко", text)
+        self.assertIn("\U0001f381 _Ваша награда за выполнение:_ съесть яблоко", text)
 
         # Подмена requests.post на виртуальный объект mock_post с помощью patch
         @patch("telegram_bot.services.requests.post")
@@ -59,7 +58,7 @@ class TelegramServiceTestCase(TestCase):
 
             # Проверки
             self.assertTrue(result)
-            mock_post.assert_called_once() # requests.post вызывается ровно один раз
+            mock_post.assert_called_once()  # requests.post вызывается ровно один раз
 
             # Проверка, что сервис попытался отправить запрос на правильный URL
             expected_url = f"{settings.TELEGRAM_URL.rstrip('/')}/{settings.TELEGRAM_BOT_TOKEN}/sendMessage"

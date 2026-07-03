@@ -5,6 +5,7 @@ from habits.models import Habit
 
 class HabitSerializer(serializers.ModelSerializer):
     """Сериализатор для модели привычки"""
+
     class Meta:
         model = Habit
         fields = "__all__"
@@ -27,15 +28,11 @@ class HabitSerializer(serializers.ModelSerializer):
 
         # Время выполнения не должно быть больше 120 секунд (Правило 2 минут)
         if duration > 120:
-            raise serializers.ValidationError(
-                "Время выполнения должно быть не больше 120 секунд."
-            )
+            raise serializers.ValidationError("Время выполнения должно быть не больше 120 секунд.")
 
         # В связанные привычки могут попадать только привычки с признаком приятной
         if related_habit and not related_habit.is_pleasant:
-            raise serializers.ValidationError(
-                "Связанная привычка обязательно должна иметь признак приятной."
-            )
+            raise serializers.ValidationError("Связанная привычка обязательно должна иметь признак приятной.")
 
         # У приятной привычки не может быть вознаграждения или связанной привычки
         if is_pleasant and (related_habit or reward):

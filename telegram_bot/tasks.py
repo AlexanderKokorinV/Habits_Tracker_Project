@@ -6,7 +6,6 @@ from habits.models import Habit
 from telegram_bot.services import TelegramBotAPIService
 
 
-
 @shared_task
 def send_habit_reminders():
     """Периодическая задача Celery, проверяющая привычки каждую минуту
@@ -18,8 +17,8 @@ def send_habit_reminders():
     habits_to_remind = Habit.objects.filter(
         time__hour=now.hour,
         time__minute=now.minute,
-        is_pleasant=False, # Исключаем приятные привычки, так как они являются наградой, а не целью
-        user__telegram_chat_id__isnull=False # У пользователя должен быть привязан Telegram
+        is_pleasant=False,  # Исключаем приятные привычки, так как они являются наградой, а не целью
+        user__telegram_chat_id__isnull=False,  # У пользователя должен быть привязан Telegram
     ).select_related("user", "related_habit")
 
     # Если на эту минуту привычек нет, завершается выполнение
@@ -41,4 +40,3 @@ def send_habit_reminders():
             sent_count += 1
 
     return f"Обработано привычек: {habits_to_remind.count()}, успешно отправлено: {sent_count}"
-

@@ -1,4 +1,3 @@
-from django.contrib.admin import action
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
@@ -10,6 +9,7 @@ from habits.models import Habit, HabitLog
 
 
 User = get_user_model()
+
 
 class HabitTestCase(APITestCase):
     """Тесты для привычек"""
@@ -35,11 +35,11 @@ class HabitTestCase(APITestCase):
             place="кресле",
             is_pleasant=False,
             duration=120,
-            reward="еще 5 страниц книги"
+            reward="еще 5 страниц книги",
         )
         self.detail_url = reverse("habits:habits-detail", kwargs={"pk": self.habit.id})
 
-#-----------Тесты валидаторов сериализатора-----------
+    # -----------Тесты валидаторов сериализатора-----------
 
     def test_validation_exclude_reward_and_related_habit(self):
         """Тест валидации - запрет одновременного выбора награды и связанной привычки"""
@@ -58,7 +58,7 @@ class HabitTestCase(APITestCase):
             "is_pleasant": False,
             "duration": 120,
             "reward": "послушать музыку",
-            "related_habit": pleasant_habit.id
+            "related_habit": pleasant_habit.id,
         }
         response = self.client.post(self.list_create_url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -70,7 +70,7 @@ class HabitTestCase(APITestCase):
             "time": "07:30:00",
             "place": "квартире",
             "is_pleasant": False,
-            "duration": 130, # Ошибка: > 120 секунд
+            "duration": 130,  # Ошибка: > 120 секунд
         }
         response = self.client.post(self.list_create_url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -79,7 +79,7 @@ class HabitTestCase(APITestCase):
         """Тест валидации - связанная привычка обязательно должна иметь флаг иметь признак приятной"""
         useful_habit = Habit.objects.create(
             user=self.user_owner,
-            action = "подготавливать вещи на утро",
+            action="подготавливать вещи на утро",
             time="21:40:00",
             place="гостиной",
             is_pleasant=False,
@@ -91,7 +91,7 @@ class HabitTestCase(APITestCase):
             "place": "кухня",
             "is_pleasant": False,
             "duration": 60,
-            "related_habit": useful_habit.id # Ошибка: привязка к полезной привычке
+            "related_habit": useful_habit.id,  # Ошибка: привязка к полезной привычке
         }
         response = self.client.post(self.list_create_url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -104,7 +104,7 @@ class HabitTestCase(APITestCase):
             "place": "ванной",
             "is_pleasant": True,
             "duration": 60,
-            "reward": "посмотреть кино" # Ошибка: у приятной привычки есть награда
+            "reward": "посмотреть кино",  # Ошибка: у приятной привычки есть награда
         }
         response = self.client.post(self.list_create_url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -117,28 +117,24 @@ class HabitTestCase(APITestCase):
             "place": "телефоне",
             "is_pleasant": False,
             "duration": 60,
-            "periodicity": 8, # Ошибка: > 7 дней
+            "periodicity": 8,  # Ошибка: > 7 дней
         }
         response = self.client.post(self.list_create_url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-#-----------CRUD тесты и пагинация-----------
+    # -----------CRUD тесты и пагинация-----------
 
     def test_get_habits_list_with_pagination(self):
         """CRUD — получение списка привычек текущего пользователя (с пагинацией)"""
 
-        for i in range(7): # Создаем 7 привычек, чтобы активировать пагинацию
+        for i in range(7):  # Создаем 7 привычек, чтобы активировать пагинацию
             Habit.objects.create(
-                user=self.user_owner,
-                action=f"действие {i}",
-                time="6:30:00",
-                place="дома",
-                duration=30
+                user=self.user_owner, action=f"действие {i}", time="6:30:00", place="дома", duration=30
             )
         response = self.client.get(self.list_create_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("results", response.data)
-        self.assertEqual(len(response.data["results"]), 5) # На странице ровно 5 элементов
+        self.assertEqual(len(response.data["results"]), 5)  # На странице ровно 5 элементов
 
     def test_get_habit_detail(self):
         """CRUD — получение деталей конкретной привычки её владельцем"""
@@ -159,7 +155,7 @@ class HabitTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Habit.objects.filter(id=self.habit.id).count(), 0)
 
-#-----------Тесты кастомных эндпоинтов и прав доступа-----------
+    # -----------Тесты кастомных эндпоинтов и прав доступа-----------
 
     def test_get_public_habits_list(self):
         """Эндпоинт public - просмотр чужих публичных привычек"""
@@ -167,7 +163,7 @@ class HabitTestCase(APITestCase):
         # Авторизация стороннего пользователя
         self.client.force_authenticate(user=self.user_other)
 
-        self.habit.is_public = True # Привычка владельца является публичной
+        self.habit.is_public = True  # Привычка владельца является публичной
         self.habit.save()
 
         public_url = reverse("habits:habits-public")
@@ -181,7 +177,7 @@ class HabitTestCase(APITestCase):
         check_url = reverse("habits:habits-check", kwargs={"pk": self.habit.id})
         response = self.client.post(check_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(HabitLog.objects.filter(habit=self.habit).count(), 1) # Создалась ровно одна запись
+        self.assertEqual(HabitLog.objects.filter(habit=self.habit).count(), 1)  # Создалась ровно одна запись
 
     def test_permission_other_cannot_check_or_edit(self):
         """Права доступа - сторонний пользователь получает 404 при попытке доступа к чужой приватной привычке"""
@@ -196,4 +192,3 @@ class HabitTestCase(APITestCase):
         check_url = reverse("habits:habits-check", kwargs={"pk": self.habit.id})
         response_check = self.client.post(check_url)
         self.assertEqual(response_check.status_code, status.HTTP_404_NOT_FOUND)
-

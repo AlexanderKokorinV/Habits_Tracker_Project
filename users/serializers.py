@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 User = get_user_model()
 
+
 class UserRegisterSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации новых пользователей"""
 
@@ -32,4 +33,4 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "email", "telegram_chat_id", "phone_number", "city", "avatar"]
-        read_only_fields = ["id", "email"] # Запрещаем изменять id и email через этот эндпоинт в целях безопасности
+        read_only_fields = ["id", "email"]  # Запрещаем изменять id и email через этот эндпоинт в целях безопасности

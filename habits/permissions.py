@@ -6,6 +6,7 @@ class IsOwnerOrReadOnly(BasePermission):
     """Разрешает (Create/PUT/PATCH/DELETE) только владельцу.
     Остальные могут только читать (GET), если привычка публичная.
     """
+
     def has_object_permission(self, request, view, obj):
         # Если метод безопасный (GET, HEAD, OPTIONS) и привычка публичная
         if request.method in permissions.SAFE_METHODS and obj.is_public:

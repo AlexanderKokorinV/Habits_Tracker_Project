@@ -1,16 +1,17 @@
 from django.contrib.auth import get_user_model
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status, generics
+from rest_framework import generics, permissions, status
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from users.serializers import UserRegisterSerializer, UserProfileSerializer
+from users.serializers import UserProfileSerializer, UserRegisterSerializer
 
 # Create your views here.
 
 User = get_user_model()
+
 
 class UserCreateAPIView(CreateAPIView):
     """Эндпоинт для регистрации нового пользователя с выдачей JWT-токенов"""
@@ -30,12 +31,11 @@ class UserCreateAPIView(CreateAPIView):
                         "user": openapi.Schema(type=openapi.TYPE_OBJECT, description="Данные профиля"),
                         "refresh": openapi.Schema(type=openapi.TYPE_STRING, description="JWT Refresh Token"),
                         "access": openapi.Schema(type=openapi.TYPE_STRING, description="JWT Access Token"),
-                    }
-                )
+                    },
+                ),
             )
         }
     )
-
     def create(self, request, *args, **kwargs):
         """Переопределяет метод create для выдачи JWT-токенов"""
 
@@ -46,23 +46,24 @@ class UserCreateAPIView(CreateAPIView):
         # Генерируем JWT-токены для нового пользователя
         refresh = RefreshToken.for_user(user)
 
-        return Response({
-            "user": UserProfileSerializer(user).data,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "user": UserProfileSerializer(user).data,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """Эндпоинт для просмотра и редактирования профиля текущего пользователя.
     URL: /api/users/profile/
     """
+
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         """Возвращает объект пользователя, который сделал запрос (из токена)"""
         return self.request.user
-
-
-

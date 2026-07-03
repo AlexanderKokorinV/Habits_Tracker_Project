@@ -1,7 +1,7 @@
 from django.db.models import Q
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, viewsets, status
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -10,8 +10,8 @@ from habits.pagination import HabitPagination
 from habits.permissions import IsOwnerOrReadOnly
 from habits.serializers import HabitSerializer
 
-
 # Create your views here.
+
 
 class HabitViewSet(viewsets.ModelViewSet):
     """Эндпоинты для работы с привычками (CRUD, Public)"""
@@ -48,8 +48,7 @@ class HabitViewSet(viewsets.ModelViewSet):
 
     # Эндпоинт отметки выполнения для SPA (вызывает создание HabitLog)
     @swagger_auto_schema(
-        method="post",
-        responses={200: openapi.Response(description="Привычка успешно отмечена выполненной")}
+        method="post", responses={200: openapi.Response(description="Привычка успешно отмечена выполненной")}
     )
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def check(self, request, pk=None):
@@ -62,7 +61,6 @@ class HabitViewSet(viewsets.ModelViewSet):
 
         # Создание лога выполнения в базе данных PostgreSQL
         log = HabitLog.objects.create(habit=habit)
-        return Response({
-            "status": "Привычка успешно отмечена выполненной!",
-            "log_id": log.id
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"status": "Привычка успешно отмечена выполненной!", "log_id": log.id}, status=status.HTTP_200_OK
+        )

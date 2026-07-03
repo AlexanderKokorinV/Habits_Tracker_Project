@@ -3,13 +3,13 @@ from django.db import models
 
 from users.managers import CustomUserManager
 
-
 # Create your models here.
+
 
 class User(AbstractUser):
     """Модель пользователя с email и без использования username"""
 
-    username= None
+    username = None
     email = models.EmailField(max_length=255, unique=True, verbose_name="Email", help_text="Укажите ваш email")
     phone_number = models.CharField(
         max_length=35, null=True, blank=True, verbose_name="Телефон", help_text="Укажите ваш номер телефона"
@@ -25,9 +25,8 @@ class User(AbstractUser):
         blank=True,
         null=True,
         verbose_name="Telegram Chat ID",
-        help_text="ID чата в Telegram для отправки уведомлений"
+        help_text="ID чата в Telegram для отправки уведомлений",
     )
-
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

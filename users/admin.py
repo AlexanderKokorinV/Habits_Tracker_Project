@@ -1,10 +1,10 @@
 from django.contrib import admin
-
-from users.models import User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
+from users.models import User
 
 # Register your models here.
+
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
@@ -18,10 +18,13 @@ class UserAdmin(BaseUserAdmin):
 
     # Поля, которые будут видны при создании пользователя через админку
     add_fieldsets = (
-        (None, {
-            "classes": ("wide",),
-            "fields": ("email", "password", "phone_number", "city", "telegram_chat_id", "avatar"),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("email", "password", "phone_number", "city", "telegram_chat_id", "avatar"),
+            },
+        ),
     )
 
     # Поля, которые видны при редактировании существующего пользователя
