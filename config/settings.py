@@ -213,8 +213,10 @@ SWAGGER_SETTINGS = {
 }
 
 # Настройка разрешенных адресов (Origins)
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS")
+cors_raw = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_raw.split(",") if origin]
 
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS")
+csrf_raw = os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_raw.split(",") if origin]
 
 CORS_ALLOW_ALL_ORIGINS = False
