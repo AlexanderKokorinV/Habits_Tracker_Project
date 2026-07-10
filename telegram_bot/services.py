@@ -1,5 +1,3 @@
-
-
 import requests
 from django.conf import settings
 
@@ -49,3 +47,4 @@ class TelegramBotAPIService:
         except (requests.RequestException, ValueError) as e:
             print(f"Ошибка Telegram Service при отправке в чат {chat_id}: {e}")
             return False
+
