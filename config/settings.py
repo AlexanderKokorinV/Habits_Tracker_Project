@@ -158,6 +158,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 AUTH_USER_MODEL = "users.User"
 
@@ -204,7 +205,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Настройка для работы с Telegram API
-TELEGRAM_URL = os.getenv("TELEGRAM_URL")
+TELEGRAM_URL = os.getenv("TELEGRAM_URL", "dummy-bot-token-for-build")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 SWAGGER_SETTINGS = {
@@ -224,6 +225,14 @@ cors_raw = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_raw.split(",") if origin]
 
 csrf_raw = os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_raw.split(",") if origin]
+CSRF_TRUSTED_ORIGINS = []
+for origin in csrf_raw.split(","):
+    origin = origin.strip()
+    if origin:
+        if not origin.startswith(
+            ("http://", "https://")
+        ):  # Если адрес не начинается с http, автоматически добавляем протокол
+            origin = f"http://{origin}"
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 CORS_ALLOW_ALL_ORIGINS = False
