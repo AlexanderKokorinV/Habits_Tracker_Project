@@ -91,7 +91,7 @@ services:
     container_name: habits_nginx
     restart: always
     ports:
-      - "8080:80" # Открываем стандартный HTTP-порт для всего интернета
+      - "80:80" # Открываем стандартный HTTP-порт для всего интернета
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - habits_static:/app/static:ro
