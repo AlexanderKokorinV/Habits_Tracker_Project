@@ -1,0 +1,104 @@
+services:
+  # 1. Сервис базы данных PostgreSQL
+  habits_db:
+    image: postgres:16-alpine
+    container_name: habits_postgres
+    restart: always
+    volumes:
+      - habits_postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    expose: # порт скрыт внутри сети Docker, внешнего подключения нет
+      - "5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Сервис кэша и брокера сообщений Redis
+  habits_redis:
+    image: redis:7-alpine
+    container_name: habits_redis
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - habits_redis_data:/data
+    expose: # порт скрыт внутри сети Docker, внешнего подключения нет
+      - "6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # 3. Асинхронный воркер Celery для фоновых задач
+  habits_celery:
+    build: .
+    container_name: habits_celery_worker
+    restart: always
+    command: celery -A config worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      habits_db:
+        condition: service_healthy
+      habits_redis:
+        condition: service_healthy
+
+  # 4. Планировщик периодических задач Celery Beat
+  habits_celery-beat:
+    build: .
+    container_name: habits_celery_beat
+    restart: always
+    command: celery -A config beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      habits_db:
+        condition: service_healthy
+      habits_redis:
+        condition: service_healthy
+
+
+  # 5. Основное веб-приложение Django (DRF)
+  habits_web:
+    build: .
+    container_name: habits_web_app
+    restart: always
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    volumes:
+      - django_static:/app/static
+      - django_media:/app/media
+    expose:
+      - "8000" # Порт скрыт внутри сети Docker, наружу на сервер его пробросит Nginx
+    env_file:
+      - .env
+    depends_on:
+      habits_db:
+        condition: service_healthy # Ждем, пока БД будет полностью готова принимать соединения
+      habits_redis:
+        condition: service_healthy # Ждем, пока Redis начнет отвечать на ping
+
+
+  # 6. Фронтенд-сервер Nginx для раздачи статики и проксирования к Gunicorn
+  habits_nginx:
+    image: nginx:stable-alpine
+    container_name: habits_nginx
+    restart: always
+    ports:
+      - "8080:80" # Открываем стандартный HTTP-порт для всего интернета
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - django_static:/app/static:ro
+      - django_media:/app/media:ro
+    depends_on:
+      - habits_web
+
+
+
+volumes:
+  habits_postgres_data:
+  habits_redis_data:
+  habits_static:
+  habits_media:

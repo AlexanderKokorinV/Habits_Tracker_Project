@@ -1,0 +1,127 @@
+# 1. Указываем имя пайплайна
+name: Habits Tracker Project Deploy
+
+# 2. Указываем, при каких событиях запускается пайплайн
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# 3. Создание jobs:
+jobs:
+  # Проверка кода линтером:
+  lint:
+    runs-on: ubuntu-latest
+    # Прописываем шаги для job:
+    steps:
+      # Шаг 1. Скачиваем актуальный код репозитория:
+      - name: Check out code
+        uses: actions/checkout@v6
+      # Шаг 2. Устанавливаем нужную версию Python:
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      # Шаг 3. Устанавливаем Poetry:
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.2.1
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      # Шаг 4. Устанавливаем линтер flake8:
+      - name: Install Lint Tools
+        run: poetry install --no-root && poetry run pip install flake8
+      # Шаг 5. Запускаем линтер Flake8 для всех python-файлов в проекте:
+      - name: Run Flake8
+        run: poetry run flake8 . --ignore=E501,F401,W503 # Пропускаем длинные строки и неиспользуемые импорты для тестов
+
+  # Запуск тестов
+  test:
+    # Запуск тестов только после успешного прохождения линтера:
+    needs: lint
+    runs-on: ubuntu-latest
+    # Прописываем шаги для job:
+    steps:
+      # Шаг 1. Скачиваем актуальный код репозитория:
+      - name: Check out code
+        uses: actions/checkout@v6
+      # Шаг 2. Устанавливаем нужную версию Python:
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      # Шаг 3. Устанавливаем Poetry:
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.2.1
+      # Шаг 4. Устанавливаем зависимости:
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-root
+      # Шаг 5. Подменяем Postgres на тестовый SQLite, а Телеграм-токен на мок-токен
+      - name: Run Django Tests
+        env:
+          DJ_TEST_USE_SQLITE: "True"
+          TELEGRAM_BOT_TOKEN: "mock_token_for_tests"
+        run: python manage.py test
+
+  # Деплой на сервер с помощью Docker:
+  deploy:
+    needs: test # Запускаем деплой только после прохождения тестов
+    if: github.event_name == 'push' # пул-реквесты сторонних пользователей не могут запускать деплой
+    runs-on: ubuntu-latest
+
+    steps:
+      # Деплой на сервере Yandex Cloud через SSH-соединение:
+      - name: Deploy to Yandex Cloud Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            
+            # 1. Автоматическое выделение +2 ГБ виртуальной памяти Swap на сервере, чтобы избежать Out of Memory
+            if [ ! -f /swapfile ]; then
+              sudo fallocate -l 2G /swapfile
+              sudo chmod 600 /swapfile
+              sudo mkswap /swapfile
+              sudo swapon /swapfile
+              echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+            fi
+            
+            # 2. Создаем директорию на удаленном сервере, если ее нет, и переходим в нее:
+            mkdir -p ~/Habits_Tracker_Project
+            cd ~/Habits_Tracker_Project
+
+            # 3. Скачиваем обновленный код из ветки main:
+            if [ -d ".git" ]; then
+              sudo git fetch --all
+              sudo git reset --hard origin/main
+              sudo git pull origin/main
+            else
+              sudo git clone https://github.com/${{ github.repository }}.git .
+            fi
+            
+            # 4. Запись .env через Heredoc
+            cat << 'EOF' > .env
+            ${{ secrets.ENV_FILE }}
+            EOF
+
+            # 5. Перезапускаем всю связку контейнеров (Django, Nginx, Postgres, Redis):
+            sudo docker compose down
+            sudo docker compose build --no-cache
+            sudo docker compose up -d --force-recreate
+            
+            # 6. Ожидание готовности базы данных перед миграциями
+            echo "Ожидание запуска контейнеров..."
+            sleep 5
+
+            # 7. Применяем миграции внутри контейнера:
+            sudo docker compose exec -T web python manage.py migrate
