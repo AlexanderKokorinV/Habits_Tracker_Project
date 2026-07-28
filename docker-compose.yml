@@ -83,6 +83,11 @@ services:
         condition: service_healthy # Ждем, пока БД будет полностью готова принимать соединения
       habits_redis:
         condition: service_healthy # Ждем, пока Redis начнет отвечать на ping
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 
   # 6. Фронтенд-сервер Nginx для раздачи статики и проксирования к Gunicorn

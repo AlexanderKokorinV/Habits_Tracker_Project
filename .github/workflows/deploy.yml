@@ -124,4 +124,4 @@ jobs:
             sleep 5
 
             # 7. Применяем миграции внутри контейнера:
-            sudo docker compose exec -T web python manage.py migrate
+            sudo docker compose exec -T habits_web python manage.py migrate
