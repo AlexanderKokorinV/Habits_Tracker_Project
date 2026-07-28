@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
+
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -49,7 +50,6 @@ INSTALLED_APPS = [
     "django_filters",
     "drf_yasg",
     "corsheaders",
-
     "users",
     "habits",
     "telegram_bot",
@@ -95,7 +95,6 @@ REST_FRAMEWORK = {
     ],
     # "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"
 }
-
 
 
 WSGI_APPLICATION = "config.wsgi.application"
@@ -166,7 +165,7 @@ CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
 CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
 
 CELERY_TIMEZONE = TIME_ZONE
-CELERY_ENABLE_UTC = False # Позволяет Celery-Beat использовать локальное время таймзоны
+CELERY_ENABLE_UTC = False  # Позволяет Celery-Beat использовать локальное время таймзоны
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
@@ -188,9 +187,9 @@ CELERY_BEAT_SCHEDULE = {
 
 # Настройка для отключения кеширования
 CACHES = {
-   "default": {
-       "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-   }
+    "default": {
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+    }
 }
 
 MEDIA_URL = "/media/"
@@ -206,7 +205,7 @@ SWAGGER_SETTINGS = {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header",
-            "description": "Введите токен в формате: Bearer <ваш_access_токен>"
+            "description": "Введите токен в формате: Bearer <ваш_access_токен>",
         }
     },
     "USE_SESSION_AUTH": False,
