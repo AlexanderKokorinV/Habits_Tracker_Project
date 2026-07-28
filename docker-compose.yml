@@ -36,39 +36,10 @@ services:
       timeout: 3s
       retries: 5
 
-  # 3. Асинхронный воркер Celery для фоновых задач
-  habits_celery:
-    build: .
-    container_name: habits_celery_worker
-    restart: always
-    command: celery -A config worker --loglevel=info
-    env_file:
-      - .env
-    depends_on:
-      habits_db:
-        condition: service_healthy
-      habits_redis:
-        condition: service_healthy
-
-  # 4. Планировщик периодических задач Celery Beat
-  habits_celery-beat:
-    build: .
-    container_name: habits_celery_beat
-    restart: always
-    command: celery -A config beat --loglevel=info
-    env_file:
-      - .env
-    depends_on:
-      habits_db:
-        condition: service_healthy
-      habits_redis:
-        condition: service_healthy
-
-
-  # 5. Основное веб-приложение Django (DRF)
+  # 3. Основное веб-приложение Django (DRF)
   habits_web:
     build: .
-    container_name: habits_web_app
+    container_name: habits_web
     restart: always
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
     volumes:
@@ -89,6 +60,37 @@ services:
       timeout: 5s
       retries: 3
 
+  # 4. Асинхронный воркер Celery для фоновых задач
+  habits_celery:
+    build: .
+    container_name: habits_celery_worker
+    restart: always
+    command: celery -A config worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      habits_db:
+        condition: service_healthy
+      habits_redis:
+        condition: service_healthy
+      habits_web:
+        condition: service_healthy
+
+  # 5. Планировщик периодических задач Celery Beat
+  habits_celery-beat:
+    build: .
+    container_name: habits_celery_beat
+    restart: always
+    command: celery -A config beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      habits_db:
+        condition: service_healthy
+      habits_redis:
+        condition: service_healthy
+      habits_web:
+        condition: service_healthy
 
   # 6. Фронтенд-сервер Nginx для раздачи статики и проксирования к Gunicorn
   habits_nginx:
@@ -104,8 +106,6 @@ services:
     depends_on:
       habits_web:
         condition: service_healthy
-
-
 
 volumes:
   habits_postgres_data:
