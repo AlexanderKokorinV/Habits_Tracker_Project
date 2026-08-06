@@ -57,7 +57,7 @@ CSRF_TRUSTED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,https://read-an
 Docker развернет изолированную сеть из **6 связанных сервисов**:
 * `habits_db` — База данных PostgreSQL 16.
 * `habits_redis` — Брокер сообщений Celery и кэш-хранилище.
-* `habits_web` — Приложение Django DRF, запущенное через боевой WSGI-сервер Gunicorn.
+* `habits_web` — Приложение Django DRF, запущенное через WSGI-сервер Gunicorn.
 * `habits_celery` — Асинхронный обработчик фоновых задач (отправка уведомлений в Telegram).
 * `habits_celery_beat` — Планировщик периодических проверок привычек по расписанию.
 * `habits_nginx` — Веб-сервер, раздающий статику и проксирующий внешние запросы к Django.

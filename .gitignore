@@ -192,3 +192,9 @@ cython_debug/
 
 *.pyc
 media/
+
+# Тестирование и отчеты
+htmlcov/
+
+# Временные файлы Celery Beat
+celerybeat-schedule*
