@@ -161,9 +161,5 @@ Docker развернет изолированную сеть из **6 связ�
 ---
 
 ## Лицензия:
+Этот проект лицензирован по [лицензии MIT](LICENSE).
 
-<<<<<<< HEAD
-Этот проект лицензирован по [лицензии MIT](LICENSE).
-=======
-Этот проект лицензирован по [лицензии MIT](LICENSE).
->>>>>>> e908c9e (Deployment: setting up the Nginx and Gunicorn production environment and initializing PostgreSQL)
